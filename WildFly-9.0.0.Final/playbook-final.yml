@@ -1,0 +1,26 @@
+---
+- hosts: master
+  remote_user: vagrant
+  become: yes
+  become_method: sudo
+  tasks:
+      - name: update yum packages
+        yum: name=* state=latest
+      - name: download java 8 rpm
+        shell: wget --no-cookies --no-check-certificate "http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.rpm" --header "Cookie:gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;oraclelicense=accept-securebackup-cookie"
+      - name: install java 8
+        yum: name=/home/vagrant/jdk-8u60-linux-x64.rpm state=present
+      - name: remove the rpm
+        file: name=/home/vagrant/jdk-8u60-linux-x64.rpm state=absent
+      - name: set java_home
+        lineinfile: dest=/home/vagrant/.bash_profile line="export JAVA_HOME=/usr/java/jdk1.8.0_60/" state=present
+      - name: make it to take effect
+        shell: source /home/vagrant/.bash_profile
+
+- hosts: nodes
+  remote_user: vagrant
+  become: yes
+  become_method: sudo
+  tasks:
+      - name: update yum packages
+        yum: name=* state=latest
