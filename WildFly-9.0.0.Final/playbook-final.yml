@@ -16,7 +16,50 @@
         lineinfile: dest=/home/vagrant/.bash_profile line="export JAVA_HOME=/usr/java/jdk1.8.0_60/" state=present
       - name: make it to take effect
         shell: source /home/vagrant/.bash_profile
+      - name: download wildfly 9.0.0 Final 
+        get_url: dest=/home/vagrant/wildfly-9.0.0.Final.zip url=http://download.jboss.org/wildfly/9.0.0.Final/wildfly-9.0.0.Final.zip
+      - name: install unzip
+        yum: name=unzip state=latest
+      - name: extrat the archive
+        unarchive: src=/home/vagrant/wildfly-9.0.0.Final.zip dest=/opt/ copy=no 
+      - name: add wildfly as a user
+        shell: adduser wildfly
+      - name: change the owner of wildfly.9.0.0.Final to wildfly
+        file: path=/opt/wildfly-9.0.0.Final owner=wildfly group=wildfly recurse=yes
+      - name: creat the symbolic link
+        file: src=/opt/wildfly-9.0.0.Final dest=/opt/wildfly state=link follow=yes owner=wildfly group=wildfly
+      - name: change the owner of log to wildfly
+        file: path=/var/log/wildfly owner=wildfly group=wildfly recurse=yes state=directory
+      - name: change the owner of run to wildfly
+        file: path=/var/run/wildfly owner=wildfly group=wildfly recurse=yes state=directory
+      - name: configure domain.xml 
+        template: src=domain.xml.j2 dest=/opt/wildfly/domain/configuration/domain.xml force=yes
+      - name: configure host.xml
+        template: src=host-master.xml.j2 dest=/opt/wildfly/domain/configuration/host.xml force=yes
+      # - name: install httpd
+      #   yum: name=httpd state=latest
+      # - name: download mod_cluster
+      #   get_url: url=http://downloads.jboss.org/mod_cluster//1.3.1.Final/linux-x86_64/mod_cluster-1.3.1.Final-linux2-x64-so.tar.gz dest=/home/vagrant/mod_cluster.tar.gz
+      # - name: extract archive
+      #   unarchive: src=/home/vagrant/mod_cluster.tar.gz dest=/etc/httpd/modules copy=no
+      - name: copy mysql driver modules
+        copy: src=com dest=/opt/wildfly/modules/
+      - name: add mysql driver to the application server
+        copy: src=mysql-connector-java-5.1.18.jar dest=/opt/wildfly/modules/com/mysql/jdbc/main/ 
+      # Start wildfly as a system service
+      - name: configure wildfly
+        template: src=wildfly.conf.j2 dest=/etc/default/wildfly.conf force=yes
+      - name: copy wildfly init script
+        shell: cp /opt/wildfly/bin/init.d/wildfly-init-redhat.sh /etc/init.d/wildfly
 
+      - name: add wildfly as a service
+        shell: chkconfig --add wildfly
+      
+
+
+
+      - name: copy mysql driver and datasource config file
+        template: src=mysql-database-config-wildfly-managed-domain.cli.j2 dest=/home/vagrant/mysql-database-config-wildfly-managed-domain.cli force=yes
 - hosts: nodes
   remote_user: vagrant
   become: yes
@@ -24,3 +67,27 @@
   tasks:
       - name: update yum packages
         yum: name=* state=latest
+      - name: download java 8 rpm
+        shell: wget --no-cookies --no-check-certificate "http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.rpm" --header "Cookie:gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;oraclelicense=accept-securebackup-cookie"
+      - name: install java 8
+        yum: name=/home/vagrant/jdk-8u60-linux-x64.rpm state=present
+      - name: remove the rpm
+        file: name=/home/vagrant/jdk-8u60-linux-x64.rpm state=absent
+      - name: set java_home
+        lineinfile: dest=/home/vagrant/.bash_profile line="export JAVA_HOME=/usr/java/jdk1.8.0_60/" state=present
+      - name: make it to take effect
+        shell: source /home/vagrant/.bash_profile
+      - name: download wildfly 9.0.0 Final 
+        get_url: dest=/home/vagrant/wildfly-9.0.0.Final.zip url=http://download.jboss.org/wildfly/9.0.0.Final/wildfly-9.0.0.Final.zip
+      - name: install unzip
+        yum: name=unzip state=latest
+      - name: extrat the archive
+        unarchive: src=/home/vagrant/wildfly-9.0.0.Final.zip dest=/opt/ copy=no 
+      - name: creat the symbolic link
+        file: src=/opt/wildfly-9.0.0.Final dest=/opt/wildfly state=link follow=yes
+      - name: copy mysql driver modules
+        copy: src=com dest=/opt/wildfly/modules/
+      - name: add mysql driver to the application server
+        copy: src=mysql-connector-java-5.1.18.jar dest=/opt/wildfly/modules/com/mysql/jdbc/main/ 
+      - name: copy mysql driver and datasource config file
+        template: src=mysql-database-config-wildfly-managed-domain.cli.j2 dest=/home/vagrant/mysql-database-config-wildfly-managed-domain.cli force=yes

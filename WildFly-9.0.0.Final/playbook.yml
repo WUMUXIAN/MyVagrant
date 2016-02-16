@@ -4,15 +4,19 @@
   become: yes
   become_method: sudo
   tasks:
-      - name: set java_home
-        lineinfile: dest=/home/vagrant/.bash_profile line="export JAVA_HOME=/usr/java/jdk1.8.0_60/" state=present
-      - name: make it to take effect
-        shell: source /home/vagrant/.bash_profile
+      - name: change the owner of run to wildfly
+        file: path=/var/run/wildfly owner=wildfly group=wildfly recurse=yes state=directory
+      - name: enable wildfly and start it
+        service: name=wildfly enabled=yes state=started
 
 - hosts: nodes
   remote_user: vagrant
   become: yes
   become_method: sudo
   tasks:
-      - name: update yum packages
-        yum: name=* state=latest
+      - name: install unzip
+        yum: name=unzip state=latest
+      - name: extrat the archive
+        unarchive: src=/home/vagrant/wildfly-9.0.0.Final.zip dest=/opt/ copy=no 
+      - name: creat the symbolic link
+        file: src=/opt/wildfly-9.0.0.Final dest=/opt/wildfly state=link follow=yes
