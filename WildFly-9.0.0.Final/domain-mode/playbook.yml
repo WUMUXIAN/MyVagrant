@@ -99,7 +99,7 @@
       #   unarchive: src=/home/vagrant/mod_cluster.tar.gz dest=/etc/httpd/modules copy=no
 
       # install and configure mysql driver
-      - name: copy mysql driver modules
-        copy: src=com dest=/opt/wildfly/modules/
-      - name: add mysql driver to the application server
-        copy: src=mysql-connector-java-5.1.18.jar dest=/opt/wildfly/modules/com/mysql/jdbc/main/
+      #- name: copy mysql driver modules
+      #  copy: src=com dest=/opt/wildfly/modules/
+      #- name: add mysql driver to the application server
+      #  copy: src=mysql-connector-java-5.1.18.jar dest=/opt/wildfly/modules/com/mysql/jdbc/main/

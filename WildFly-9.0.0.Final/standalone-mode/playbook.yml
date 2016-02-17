@@ -1,0 +1,55 @@
+---
+
+- hosts: standalone
+  remote_user: vagrant
+  become: yes
+  become_method: sudo
+  tasks:
+
+      # yum packages
+      - name: update yum packages
+        yum: name=* state=latest
+
+      # install java 8
+      - name: download java 8 rpm
+        shell: wget --no-cookies --no-check-certificate "http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.rpm" --header "Cookie:gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;oraclelicense=accept-securebackup-cookie"
+      - name: install java 8
+        yum: name=/home/vagrant/jdk-8u60-linux-x64.rpm state=present
+      - name: remove the rpm
+        file: name=/home/vagrant/jdk-8u60-linux-x64.rpm state=absent
+      - name: set java_home
+        lineinfile: dest=/home/vagrant/.bash_profile line="export JAVA_HOME=/usr/java/jdk1.8.0_60/" state=present
+      - name: make it to take effect
+        shell: source /home/vagrant/.bash_profile
+
+      # install wildfly 9.0.0 and run it as a service
+      - name: download wildfly 9.0.0
+        get_url: dest=/home/vagrant/wildfly-9.0.0.Final.tar.gz url=http://download.jboss.org/wildfly/9.0.0.Final/wildfly-9.0.0.Final.tar.gz
+      - name: copy the install shell over
+        copy: src=wildfly-install.sh dest=/home/vagrant/wildfly-install.sh
+      - name: run the installation
+        shell: sh /home/vagrant/wildfly-install.sh
+      - name: configure standalone-full.xml
+        template: src=standalone-full.xml.j2 dest=/opt/wildfly/standalone/configuration/standalone-full.xml force=yes
+      - name: start wildfly
+        service: name=wildfly state=started
+
+      # add wildly users
+      - name: add admin user
+        shell: /opt/wildfly/bin/add-user.sh admin admin --silent
+      # - name: install httpd
+      #   yum: name=httpd state=latest
+      # - name: download mod_cluster
+      #   get_url: url=http://downloads.jboss.org/mod_cluster//1.3.1.Final/linux-x86_64/mod_cluster-1.3.1.Final-linux2-x64-so.tar.gz dest=/home/vagrant/mod_cluster.tar.gz
+      # - name: extract archive
+      #   unarchive: src=/home/vagrant/mod_cluster.tar.gz dest=/etc/httpd/modules copy=no
+
+      # install and configure mysql driver
+      - name: copy mysql driver modules
+        copy: src=com dest=/opt/wildfly/modules/
+      - name: add mysql driver to the application server
+        copy: src=mysql-connector-java-5.1.18.jar dest=/opt/wildfly/modules/com/mysql/jdbc/main/
+      - name: copy mysql driver and datasource config file
+        template: src=mysql-database-config-wildfly-standalone.cli.j2 dest=/home/vagrant/mysql-database-config-wildfly-standalone.cli force=yes
+      - name: install mysql driver and datasource
+        shell: /opt/wildfly/bin/jboss-cli.sh --file=/home/vagrant/mysql-database-config-wildfly-standalone.cli
