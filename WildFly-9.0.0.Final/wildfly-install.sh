@@ -30,9 +30,6 @@ echo "This script must be run as root."
 exit 1
 fi
 
-# copy wildfly and it's configurations
-cp /vagrant/$WILDFLY_ARCHIVE_NAME /home/vagrant/$WILDFLY_ARCHIVE_NAME
-
 echo "Cleaning up..."
 rm -rf "$WILDFLY_DIR"
 rm -rf "$WILDFLY_FULL_DIR"

@@ -1,6 +1,6 @@
 ANSIBLE_GROUPS = {
               "master" => ["node1"],
-              "nodes" => ["node2"],
+              "nodes" => ["node2", "node3"],
               "all_groups:children" => ["master", "nodes"]
             }
 
@@ -32,7 +32,10 @@ Vagrant.configure(2) do |config|
     config.vm.define "node3" do |node3|
         node3.vm.network "private_network", ip: "192.168.33.17"
         node3.vm.hostname = "node3"
-        node3.vm.provision "shell", path: "wildfly-install.sh"
+        node3.vm.provision "ansible" do |ansible|
+            ansible.playbook = "playbook.yml"
+            ansible.groups = ANSIBLE_GROUPS
+        end
     end
 end
 

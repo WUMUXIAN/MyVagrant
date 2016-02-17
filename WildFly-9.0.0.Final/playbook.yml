@@ -23,6 +23,8 @@
         shell: source /home/vagrant/.bash_profile
 
       # install wildfly 9.0.0 and run it as a service
+      - name: download wildfly 9.0.0
+        get_url: dest=/home/vagrant/wildfly-9.0.0.Final.tar.gz url=http://download.jboss.org/wildfly/9.0.0.Final/wildfly-9.0.0.Final.tar.gz
       - name: copy the install shell over
         copy: src=wildfly-install.sh dest=/home/vagrant/wildfly-install.sh
       - name: run the installation
@@ -52,9 +54,9 @@
       - name: add mysql driver to the application server
         copy: src=mysql-connector-java-5.1.18.jar dest=/opt/wildfly/modules/com/mysql/jdbc/main/
       - name: copy mysql driver and datasource config file
-        template: src=mysql-database-config-wildfly-managed-domain-master.cli.j2 dest=/home/vagrant/mysql-database-config-wildfly-managed-domain-master.cli force=yes
+        template: src=mysql-database-config-wildfly-managed-domain.cli.j2 dest=/home/vagrant/mysql-database-config-wildfly-managed-domain.cli force=yes
       - name: install mysql driver and datasource
-        shell: /opt/wildfly/bin/jboss-cli.sh —-file=/home/vagrant/mysql-database-config-wildfly-managed-domain-master.cli
+        shell: /opt/wildfly/bin/jboss-cli.sh --file=/home/vagrant/mysql-database-config-wildfly-managed-domain.cli
 
 - hosts: nodes
   remote_user: vagrant
@@ -79,6 +81,8 @@
         shell: source /home/vagrant/.bash_profile
 
       # install wildfly 9.0.0 and run it as a service
+      - name: download wildfly 9.0.0
+        get_url: dest=/home/vagrant/wildfly-9.0.0.Final.tar.gz url=http://download.jboss.org/wildfly/9.0.0.Final/wildfly-9.0.0.Final.tar.gz
       - name: copy the install shell over
         copy: src=wildfly-install.sh dest=/home/vagrant/wildfly-install.sh
       - name: run the installation
@@ -99,8 +103,3 @@
         copy: src=com dest=/opt/wildfly/modules/
       - name: add mysql driver to the application server
         copy: src=mysql-connector-java-5.1.18.jar dest=/opt/wildfly/modules/com/mysql/jdbc/main/
-      - name: copy mysql driver and datasource config file
-        template: src=mysql-database-config-wildfly-managed-domain-slave.cli.j2 dest=/home/vagrant/mysql-database-config-wildfly-managed-domain-slave.cli force=yes
-      - name: install mysql driver and datasource
-        shell: /opt/wildfly/bin/jboss-cli.sh —-file=/home/vagrant/mysql-database-config-wildfly-managed-domain-slave.cli
-
