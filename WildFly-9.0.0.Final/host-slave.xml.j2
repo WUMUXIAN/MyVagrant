@@ -10,14 +10,21 @@
             <security-realm name="ManagementRealm">
                 <server-identities>
                     <secret value="c2xhdmU=" />
-                    <!-- This is required for SSL remoting -->
-                    <ssl>
-                      <keystore path="server.keystore" relative-to="jboss.domain.config.dir" keystore-password="jbossas" alias="jboss" key-password="jbossas"/>
-                    </ssl>
                 </server-identities>
+                
                 <authentication>
                     <properties path="mgmt-users.properties" relative-to="jboss.domain.config.dir"/>
                 </authentication>                
+            </security-realm>
+            
+            <security-realm name="ApplicationRealm">
+                <authentication>
+                    <local default-user="$local" allowed-users="*" skip-group-loading="true"/>
+                    <properties path="application-users.properties" relative-to="jboss.domain.config.dir"/>
+                </authentication>
+                <authorization>
+                    <properties path="application-roles.properties" relative-to="jboss.domain.config.dir"/>
+                </authorization>
             </security-realm>
         </security-realms>
         <audit-log>

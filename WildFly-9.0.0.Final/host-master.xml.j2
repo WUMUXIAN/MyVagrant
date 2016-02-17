@@ -61,12 +61,6 @@
         <!-- <remote protocol="remote" host="${jboss.domain.master.address}" port="${jboss.domain.master.port:9999}" security-realm="ManagementRealm"/> -->
     </domain-controller>
 
-    <domain-controller>
-        <local/>
-        <!-- Alternative remote domain controller configuration with a host and port -->
-        <!-- <remote protocol="remote" host="${jboss.domain.master.address}" port="${jboss.domain.master.port:9999}" security-realm="ManagementRealm"/> -->
-    </domain-controller>
-
     <interfaces>
         <interface name="management">
             <inet-address value="${jboss.bind.address.management:192.168.33.15}"/>
