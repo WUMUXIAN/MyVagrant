@@ -1,0 +1,41 @@
+---
+
+- hosts: node
+  remote_user: vagrant
+  become: yes
+  become_method: sudo
+  tasks:
+
+      # yum packages
+      - name: update yum packages
+        yum: name=* state=latest
+
+      # configure the system file limits
+      - name: configure the limits
+        blockinfile: 
+          dest: /etc/security/limits.conf
+          block: |
+            root soft nofile 65536
+            root hard nofile 65536
+            * soft nofile 65536
+            * hard nofile 65536
+
+      # configure the network parameters
+      - name: tcp_tw_recycle 
+        shell: sysctl -w net.ipv4.tcp_tw_recycle=1 
+      - name: tcp_tw_reuse 
+        shell: sysctl -w net.ipv4.tcp_tw_reuse=1 
+      - name: ip_local_port_range=10240 65535 
+        shell: sysctl -w net.ipv4.ip_local_port_range="10240 65535"
+
+      # install td-agent on the machine
+      - name: download the script
+        get_url: dest=/home/vagrant/ url="https://toolbelt.treasuredata.com/sh/install-redhat-td-agent2.sh"
+      - name: install the td-agent
+        shell: sh install-redhat-td-agent2.sh
+
+      # configure td-agent and start it as a service
+      - name: copy the configration file
+        template: src=td-agent.conf.j2 dest=/etc/td-agent/td-agent.conf
+      - name: enable td-agent and start it
+        service: name=td-agent enabled=true state=started
