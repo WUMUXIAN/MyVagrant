@@ -1,0 +1,40 @@
+ANSIBLE_GROUPS = {
+              "master" => ["node1"],
+              "slaves" => ["node2", "node3"],
+              "all_groups:children" => ["master", "slaves"]
+            }
+
+Vagrant.configure(2) do |config|
+    config.vm.box = "bento/centos-7.1"
+    config.vm.provider "virtualbox" do |v|
+        v.memory = 1024
+        v.cpus = 1
+    end
+    config.ssh.insert_key = false
+    config.vm.define "node1" do |node1|
+        node1.vm.network "private_network", ip: "192.168.33.19"
+        node1.vm.hostname = "c19.ambari.apache.org"
+        node1.vm.provision "ansible" do |ansible|
+            ansible.playbook = "install_ambari.yml"
+            ansible.groups = ANSIBLE_GROUPS
+        end
+    end
+    config.vm.define "node2" do |node2|
+        node2.vm.network "private_network", ip: "192.168.33.20"
+        node2.vm.hostname = "c20.ambari.apache.org"
+        node2.vm.provision "ansible" do |ansible|
+            ansible.playbook = "install_ambari.yml"
+            ansible.groups = ANSIBLE_GROUPS
+        end
+    end
+    config.vm.define "node3" do |node3|
+        node3.vm.network "private_network", ip: "192.168.33.21"
+        node3.vm.hostname = "c21.ambari.apache.org"
+        node3.vm.provision "ansible" do |ansible|
+            ansible.playbook = "install_ambari.yml"
+            ansible.groups = ANSIBLE_GROUPS
+        end
+    end
+end
+
+

@@ -1,0 +1,40 @@
+---
+# yum packages
+- name: update yum packages
+  yum: name=* state=latest
+
+# install prerequisities
+- name: install mysql-server
+  yum: name=http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm state=present
+- name: install mysql mysql-connector-java ntp
+  yum: name=mysql,mysql-connector-java,ntp state=latest
+
+# configure the machine
+- name: configure hosts file
+  template: src=./hosts.j2 dest=/etc/hosts force=true
+- name: configure the resolve file
+  template: src=./resolv.conf.j2 dest=/etc/resolv.conf force=true
+- name: config network interface ifcfg-lo to stop resolv.conf to be overwritten
+  lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-lo line="NM_CONTROLLED=no\nPEERDNS=no"
+- name: config network interface ifcfg-enp0s3 to stop resolv.conf to be overwritten
+  lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-enp0s3 line="NM_CONTROLLED=no\nPEERDNS=no"
+- name: start ntpd
+  service: name=ntpd state=started
+- name: increase swap space
+  shell: dd if=/dev/zero of=/swapfile bs=1024 count=1024k
+- name: mkswap
+  shell: mkswap /swapfile
+- name: swapon
+  shell: swapon /swapfile
+- name: update fstab
+  lineinfile: line="/swapfile       none    swap    sw      0       0" dest=/etc/fstab
+- name: create root ssh folder
+  file: path=/root/.ssh state=directory
+- name: copy over the authorized_keys
+  shell: cp /home/vagrant/.ssh/authorized_keys /root/.ssh/
+- name: make .ssh 600
+  shell: chmod 600 /root/.ssh
+- name: copy the insecure_private_key
+  copy: src=./insecure_private_key dest=/root/ec2-keypair force=yes
+- name: make ec2-keypair 600
+  shell: chmod 600 /root/ec2-keypair

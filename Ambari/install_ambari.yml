@@ -1,0 +1,27 @@
+---
+
+- hosts: master
+  remote_user: vagrant
+  become: yes
+  become_method: sudo
+  tasks:
+
+      - include: prerequisities.yml     
+
+      # install ambari 
+      - name: download the repo
+        get_url: dest=/etc/yum.repos.d/ url="http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.2.0.0/ambari.repo"
+      - name: install ambari
+        yum: name=ambari-server state=latest
+      - name: setup ambari
+        shell: ambari-server setup -s
+      - name: start ambari
+        shell: ambari-server start 
+
+- hosts: slaves
+  remote_user: vagrant
+  become: yes
+  become_method: sudo
+  tasks:
+
+      - include: prerequisities.yml     
